@@ -1,13 +1,14 @@
 import json
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import JsonResponse
-from rest_framework import viewsets, permissions, status, serializers
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
-from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import viewsets, permissions, status
 
 from recipes_app.models import Recipe, Ingredient
-from recipes_app.permissions import IsOwnerOrReadOnly, IsNotOwner, IsOwner
+from recipes_app.permissions import IsOwnerOrReadOnly, IsNotOwner
 from recipes_app.serializers import RecipeSerializer, IngredientSerializer
 
 
@@ -67,7 +68,7 @@ class RateRecipeViewSet(generics.CreateAPIView):
 
         if 0 < rating < 6:
             recipe = Recipe.objects.filter(id=recipe_id)
-            if recipe is not None:
+            if recipe:
                 recipe = recipe.first()
                 self.check_object_permissions(request, recipe)
                 recipe.number_of_ratings += 1
@@ -78,3 +79,10 @@ class RateRecipeViewSet(generics.CreateAPIView):
         else:
             return JsonResponse(data={"message": "Invalid rating value."},
                                 status=status.HTTP_400_BAD_REQUEST, )
+
+
+class RecipeSearchViewSet(generics.ListAPIView):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    filter_backends = [DjangoFilterBackend]
+    search_fields = ['name', 'text', 'ingredients']

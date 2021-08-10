@@ -28,9 +28,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('profile/register/', include('dj_rest_auth.registration.urls')),
     path('profile/', include('dj_rest_auth.urls')),
-    path(r'recipes/rate/', viewsets.RateRecipeViewSet.as_view()),
     path(r'most-used-ingredients/', viewsets.MostUsedIngredientsViewSet.as_view()),
+    path(r'recipes/rate/', viewsets.RateRecipeViewSet.as_view()),
     path(r'recipes-own/', viewsets.OwnRecipesViewSet.as_view()),
+    path(r'recipes-search/', viewsets.RecipeSearchViewSet.as_view()),
     path('', include(recipes_router.urls)),
 ]
 
