@@ -1,5 +1,8 @@
+import json
+
 from django.db.models import Count
-from rest_framework import viewsets, permissions, status
+from django.http import JsonResponse
+from rest_framework import viewsets, permissions, status, serializers
 from rest_framework import generics
 from rest_framework.response import Response
 
@@ -17,12 +20,11 @@ class RecipesViewSet(viewsets.ModelViewSet):
         data = request.data
         ingredients = data.pop("ingredients")
         recipe = Recipe.objects.create(owner=request.user, **data)
-        # recipe.save()
         for ingredient in ingredients:
             recipe.ingredients.add(ingredient)
         recipe.save()
         rs = RecipeSerializer(recipe, read_only=True)
-        return Response(data=rs.data, status=status.HTTP_201_CREATED)
+        return JsonResponse(data=rs.data, status=status.HTTP_201_CREATED)
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
@@ -41,29 +43,38 @@ class MostUsedIngredientsViewSet(generics.ListAPIView):
 
 class OwnRecipesViewSet(generics.ListAPIView):
     serializer_class = RecipeSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwner]
-    #
+
     def get_queryset(self):
         user = self.request.user
         return Recipe.objects.filter(owner=user)
 
 
 class RateRecipeViewSet(generics.CreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsNotOwner]
-    lookup_url_kwarg = "recipe"
+    permission_classes = (permissions.IsAuthenticated, IsNotOwner)
+    queryset = Recipe.objects.all()
 
     def post(self, request, *args, **kwargs):
-        recipe_id = self.kwargs.get(self.lookup_url_kwarg)
-        rating = request.POST.get('rating', None)
-        if recipe_id is not None and rating is not None and isinstance(rating, int) and 0 < rating < 6:
+        try:
+            recipe_id = int(self.request.query_params.get('recipe', None))
+            rating = int(json.loads(request.body).get('rating', None))
+        except ValueError:
+            return JsonResponse(data={'message': 'Wrong type of id or rating.'}, status=status.HTTP_400_BAD_REQUEST)
+        except TypeError:
+            return JsonResponse(data={'message': 'Recipe id or rating malformed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if rating is None:
+            return JsonResponse(data={'message': 'Rating is missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 0 < rating < 6:
             recipe = Recipe.objects.filter(id=recipe_id)
             if recipe is not None:
                 recipe = recipe.first()
+                self.check_object_permissions(request, recipe)
                 recipe.number_of_ratings += 1
-                recipe.rating = (recipe.rating + float(rating)) / float(recipe.number_of_ratings)
+                recipe.rating = (recipe.rating or 0) * recipe.number_of_ratings - (float(recipe.rating or 0) - float(rating))
                 recipe.save()
-                return Response(data='{"message": "Recipe rated successfully."}', status=status.HTTP_200_OK)
-            return Response(data='{"message": "Recipe not found."}', status=status.HTTP_404_NOT_FOUND)
+                return JsonResponse(data={"message": "Recipe rated successfully."}, status=status.HTTP_200_OK)
+            return JsonResponse(data={"message": "Recipe not found."}, status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response(data='{"message": "Bad request."}', status=status.HTTP_400_BAD_REQUEST)
-
+            return JsonResponse(data={"message": "Invalid rating value."},
+                                status=status.HTTP_400_BAD_REQUEST, )
