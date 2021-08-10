@@ -6,7 +6,10 @@ class UserProfile(AbstractUser):
     first_name = models.CharField(max_length=150, blank=False)
     last_name = models.CharField(max_length=150, blank=False)
     email = models.EmailField(max_length=150, blank=False)
-    location = models.CharField(max_length=250, blank=True)
+    location = models.CharField(max_length=250, blank=True, null=True)
+    time_zone = models.CharField(max_length=250, blank=True, null=True)
+    city = models.CharField(max_length=150, blank=True, null=True)
+    employment = models.CharField(max_length=250, blank=True, null=True)
 
     def __str__(self):
         return f'{self.username} - {self.email}'
