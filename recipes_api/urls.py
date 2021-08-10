@@ -32,6 +32,7 @@ urlpatterns = [
     path(r'recipes/rate/', viewsets.RateRecipeViewSet.as_view()),
     path(r'recipes-own/', viewsets.OwnRecipesViewSet.as_view()),
     path(r'recipes-search/', viewsets.RecipeSearchViewSet.as_view()),
+    path(r'recipes-filter/', viewsets.RecipeFilterViewSet.as_view()),
     path('', include(recipes_router.urls)),
 ]
 

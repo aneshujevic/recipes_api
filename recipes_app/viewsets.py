@@ -44,10 +44,12 @@ class MostUsedIngredientsViewSet(generics.ListAPIView):
 
 class OwnRecipesViewSet(generics.ListAPIView):
     serializer_class = RecipeSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        return Recipe.objects.filter(owner=user)
+        recipes = Recipe.objects.filter(owner=user)
+        return recipes
 
 
 class RateRecipeViewSet(generics.CreateAPIView):
@@ -86,3 +88,27 @@ class RecipeSearchViewSet(generics.ListAPIView):
     serializer_class = RecipeSerializer
     filter_backends = [DjangoFilterBackend]
     search_fields = ['name', 'text', 'ingredients']
+
+
+class RecipeFilterViewSet(generics.ListAPIView):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    filter_backends = [DjangoFilterBackend]
+
+    def get_queryset(self):
+        try:
+            number_of_max = int(self.request.query_params.get('max', None))
+            number_of_min = int(self.request.query_params.get('min', None))
+        except ValueError:
+            return JsonResponse(data={'message': 'Wrong type of parameters.'}, status=status.HTTP_400_BAD_REQUEST)
+        except TypeError:
+            return JsonResponse(data={'message': 'Parameters malformed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if number_of_max and number_of_max > 0:
+            queryset = Recipe.objects.annotate(ingredient_count=Count('ingredients')).order_by('-ingredient_count')[:number_of_max]
+            return queryset
+        elif number_of_min and number_of_min > 0:
+            queryset = Ingredient.objects.annotate(recipe_count=Count('recipe')).order_by('recipe_count')[:number_of_min]
+            return queryset
+
+        return Recipe.objects.none()
