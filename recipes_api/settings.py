@@ -120,12 +120,12 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-REST_AUTH_REGISTER_SERIALIZERS = {
-    'REGISTER_SERIALIZER': 'recipes_app.serializers.RegistrationSerializer',
+REST_AUTH_SERIALIZERS = {
+    'USER_DETAILS_SERIALIZER': 'recipes_app.serializers.UserProfileSerializer',
 }
 
-REST_AUTH_SERIALIZERS = {
-    'USER_DETAIL_SERIALIZER ': 'recipes_app.serializers.UserProfileSerializer',
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'recipes_app.serializers.RegistrationSerializer',
 }
 
 LANGUAGE_CODE = 'en-us'

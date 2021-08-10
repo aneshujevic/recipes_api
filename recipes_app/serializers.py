@@ -1,8 +1,9 @@
 import json
 
-import django.conf
+import dj_rest_auth
 import requests
 from rest_framework import serializers, status
+from dj_rest_auth.serializers import UserDetailsSerializer
 from dj_rest_auth.registration.serializers import RegisterSerializer
 import clearbit
 
@@ -24,10 +25,10 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
+class UserProfileSerializer(UserDetailsSerializer):
+    class Meta(UserDetailsSerializer.Meta):
         model = UserProfile
-        fields = '__all__'
+        fields = (*UserDetailsSerializer.Meta.fields, 'location', 'time_zone', 'city', 'employment')
         extra_kwargs = {'password': {'write_only': True}, 'location': {'write_only': True}}
 
 
