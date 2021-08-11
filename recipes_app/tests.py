@@ -85,6 +85,41 @@ class RecipeTest(APITestCase):
         recipe.ingredients.add(Ingredient.objects.get())
         user = UserProfile.objects.create(username='test', last_name='test', first_name='test', email='test@test.com')
         Recipe.objects.create(recipe_text='random', name_of_the_recipe='rand', owner_id=user.id)
+        self.prepare_recipes_ingredients()
+
+    def prepare_recipes_ingredients(self):
+        ing1 = Ingredient.objects.create(name_of_the_ingredient='carrot')
+        ing2 = Ingredient.objects.create(name_of_the_ingredient='cabbage')
+        ing3 = Ingredient.objects.create(name_of_the_ingredient='apple')
+        ing4 = Ingredient.objects.create(name_of_the_ingredient='beans')
+        most_ingredients_recipe = Recipe.objects.create(
+            id=122,
+            owner=self.user,
+            recipe_text="text",
+            name_of_the_recipe="some name",
+        )
+        Recipe.objects.create(
+            id=5,
+            owner=self.user,
+            recipe_text="zzz",
+            name_of_the_recipe="t",
+        )
+        Recipe.objects.create(
+            id=7,
+            owner=self.user,
+            recipe_text="search",
+            name_of_the_recipe="some name",
+        ).ingredients.add(ing3)
+        Recipe.objects.create(
+            id=8,
+            owner=self.user,
+            recipe_text="text",
+            name_of_the_recipe="some name",
+        ).ingredients.add(ing2)
+        most_ingredients_recipe.ingredients.add(ing1)
+        most_ingredients_recipe.ingredients.add(ing2)
+        most_ingredients_recipe.ingredients.add(ing3)
+        most_ingredients_recipe.ingredients.add(ing4)
 
     def test_recipe_creation(self):
         recipe_data = {
@@ -97,7 +132,7 @@ class RecipeTest(APITestCase):
         response = self.create_view(request)
         recipe_count = Recipe.objects.count()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(recipe_count, 3)
+        self.assertEqual(recipe_count, 7)
 
     def test_recipe_get(self):
         request = self.factory.get(RECIPES_URL)
@@ -124,14 +159,14 @@ class RecipeTest(APITestCase):
         force_authenticate(request, user=self.user)
         response = self.list_view(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 6)
 
     def test_recipe_get_own(self):
         client = APIClient()
         client.force_authenticate(user=self.user)
         response = client.get(RECIPES_OWN_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data), 5)
 
     def test_recipe_rate(self):
         client = APIClient()
@@ -155,42 +190,13 @@ class RecipeTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_recipe_filter(self):
-        ing1 = Ingredient.objects.create(name_of_the_ingredient='carrot')
-        ing2 = Ingredient.objects.create(name_of_the_ingredient='cabbage')
-        ing3 = Ingredient.objects.create(name_of_the_ingredient='apple')
-        ing4 = Ingredient.objects.create(name_of_the_ingredient='beans')
-        most_ingredients_recipe = Recipe.objects.create(
-            id=122,
-            owner=self.user,
-            recipe_text="text",
-            name_of_the_recipe="some name",
-        )
-        least_ingredients_recipe = Recipe.objects.create(
-            id=5,
-            owner=self.user,
-            recipe_text="text",
-            name_of_the_recipe="some name",
-        )
-        Recipe.objects.create(
-            id=7,
-            owner=self.user,
-            recipe_text="text",
-            name_of_the_recipe="some name",
-        ).ingredients.add(ing3)
-        Recipe.objects.create(
-            id=8,
-            owner=self.user,
-            recipe_text="text",
-            name_of_the_recipe="some name",
-        ).ingredients.add(ing2)
-        most_ingredients_recipe.ingredients.add(ing1)
-        most_ingredients_recipe.ingredients.add(ing2)
-        most_ingredients_recipe.ingredients.add(ing3)
-        most_ingredients_recipe.ingredients.add(ing4)
-        print((self.client.get(RECIPES_FILTER_URL + '?max=1')))
+        self.assertEqual(json.loads(self.client.get(RECIPES_FILTER_URL + '?max=1').content)[0]['id'], 122)
+        self.assertEqual(json.loads(self.client.get(RECIPES_FILTER_URL + '?min=1').content)[0]['id'], 5)
 
     def test_recipe_search(self):
-        pass
+        self.assertEqual(len(json.loads(self.client.get(RECIPES_SEARCH_URL + '?search=t').content)), 4)
+        self.assertEqual(json.loads(self.client.get(RECIPES_SEARCH_URL + '?search=zzz').content)[0]['id'], 5)
+        self.assertEqual(len(json.loads(self.client.get(RECIPES_SEARCH_URL + '?search=cabbage').content)), 2)
 
 
 class IngredientTest(APITestCase):

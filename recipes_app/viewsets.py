@@ -3,7 +3,7 @@ import json
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics
+from rest_framework import generics, filters
 from rest_framework import viewsets, permissions, status
 
 from recipes_app.models import Recipe, Ingredient
@@ -85,8 +85,8 @@ class RateRecipeViewSet(generics.CreateAPIView):
 class RecipeSearchViewSet(generics.ListAPIView):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    filter_backends = [DjangoFilterBackend]
-    search_fields = ['name', 'text', 'ingredients']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name_of_the_recipe', 'recipe_text', 'ingredients__name_of_the_ingredient']
 
 
 class RecipeFilterViewSet(generics.ListAPIView):
@@ -95,19 +95,17 @@ class RecipeFilterViewSet(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend]
 
     def get_queryset(self):
-        try:
-            number_of_max = int(self.request.query_params.get('max', None))
-            number_of_min = int(self.request.query_params.get('min', None)) if not number_of_max else None
-        except ValueError:
-            return JsonResponse(data={'message': 'Wrong type of parameters.'}, status=status.HTTP_400_BAD_REQUEST)
-        except TypeError:
-            return JsonResponse(data={'message': 'Parameters malformed.'}, status=status.HTTP_400_BAD_REQUEST)
+        number_of_max, number_of_min = None, None
+        if max_param := self.request.query_params.get('max', None) is not None:
+            number_of_max = int(max_param)
+        if min_param := self.request.query_params.get('min', None) is not None:
+            number_of_min = int(min_param)
 
         if number_of_max and number_of_max > 0:
             queryset = Recipe.objects.annotate(ingredient_count=Count('ingredients')).order_by('-ingredient_count')[:number_of_max]
             return queryset
         elif number_of_min and number_of_min > 0:
-            queryset = Ingredient.objects.annotate(recipe_count=Count('recipe')).order_by('recipe_count')[:number_of_min]
+            queryset = Recipe.objects.annotate(ingredient_count=Count('ingredients')).order_by('ingredient_count')[:number_of_min]
             return queryset
 
-        return Recipe.objects.none()
+        return JsonResponse(data={'message': 'Parameters malformed.'}, status=status.HTTP_400_BAD_REQUEST)
