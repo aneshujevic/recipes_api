@@ -20,7 +20,7 @@ from django.urls import path, include
 
 
 recipes_router = routers.SimpleRouter()
-recipes_router.register(r'recipes', viewsets.RecipesViewSet)
+recipes_router.register(r'recipes', viewsets.RecipeViewSet)
 recipes_router.register(r'ingredients', viewsets.IngredientsViewSet, basename='ingredients')
 
 
@@ -28,11 +28,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('profile/register/', include('dj_rest_auth.registration.urls')),
     path('profile/', include('dj_rest_auth.urls')),
-    path(r'most-used-ingredients/', viewsets.MostUsedIngredientsViewSet.as_view()),
-    path(r'recipes/rate/', viewsets.RateRecipeViewSet.as_view()),
-    path(r'recipes-own/', viewsets.OwnRecipesViewSet.as_view()),
-    path(r'recipes-search/', viewsets.RecipeSearchViewSet.as_view()),
-    path(r'recipes-filter/', viewsets.RecipeFilterViewSet.as_view()),
+    path(r'most-used-ingredients/', viewsets.MostUsedIngredientsViewSet.as_view(), name='most-used-ingredients'),
+    path(r'recipes/rate/', viewsets.RateRecipeViewSet.as_view(), name='rate-recipes'),
+    path(r'recipes-own/', viewsets.OwnRecipesViewSet.as_view(), name='recipes-own'),
+    path(r'recipes-search/', viewsets.RecipeSearchViewSet.as_view(), name='recipes-search'),
+    path(r'recipes-filter/', viewsets.RecipeFilterViewSet.as_view(), name='recipes-filter'),
     path('', include(recipes_router.urls)),
 ]
 

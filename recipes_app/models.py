@@ -16,15 +16,15 @@ class UserProfile(AbstractUser):
 
 
 class Ingredient(models.Model):
-    name_of_ingredient = models.CharField(max_length=250, blank=False)
+    name_of_the_ingredient = models.CharField(max_length=250, blank=False)
 
     def __str__(self):
-        return f'{self.name_of_ingredient}'
+        return f'{self.name_of_the_ingredient}'
 
 
 class Recipe(models.Model):
     owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    ingredients = models.ManyToManyField(Ingredient)
+    ingredients = models.ManyToManyField(Ingredient, blank=True)
     recipe_text = models.TextField(blank=False)
     name_of_the_recipe = models.CharField(max_length=250, blank=False)
     number_of_ratings = models.PositiveIntegerField(default=0, blank=True)

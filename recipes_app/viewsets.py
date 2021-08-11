@@ -4,7 +4,6 @@ from django.db.models import Count, Q
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
-from rest_framework import authentication
 from rest_framework import viewsets, permissions, status
 
 from recipes_app.models import Recipe, Ingredient
@@ -12,7 +11,7 @@ from recipes_app.permissions import IsOwnerOrReadOnly, IsNotOwner
 from recipes_app.serializers import RecipeSerializer, IngredientSerializer
 
 
-class RecipesViewSet(viewsets.ModelViewSet):
+class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
@@ -98,7 +97,7 @@ class RecipeFilterViewSet(generics.ListAPIView):
     def get_queryset(self):
         try:
             number_of_max = int(self.request.query_params.get('max', None))
-            number_of_min = int(self.request.query_params.get('min', None))
+            number_of_min = int(self.request.query_params.get('min', None)) if not number_of_max else None
         except ValueError:
             return JsonResponse(data={'message': 'Wrong type of parameters.'}, status=status.HTTP_400_BAD_REQUEST)
         except TypeError:

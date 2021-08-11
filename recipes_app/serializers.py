@@ -56,7 +56,8 @@ class RegistrationSerializer(RegisterSerializer):
 
     def save(self, request):
         user = super().save(request)
-        additional_user_info = get_user_data_clearbit(user.email)
+        additional_user_info = {}
+        # additional_user_info = get_user_data_clearbit(user.email)
         user.location = additional_user_info.get('location', None)
         user.time_zone = additional_user_info.get('time_zone', None)
         user.city = additional_user_info.get('city', None)
@@ -103,5 +104,7 @@ def get_user_data_clearbit(email):
         print("No info on clearbit.")
     except requests.exceptions.HTTPError:
         print("Invalid email.")
+    except AttributeError:
+        print("Couldn't create a object of type clearbit.")
     return data
 
