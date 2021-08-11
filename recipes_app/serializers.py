@@ -1,6 +1,5 @@
 import json
 
-import dj_rest_auth
 import requests
 from rest_framework import serializers, status
 from dj_rest_auth.serializers import UserDetailsSerializer
@@ -57,7 +56,7 @@ class RegistrationSerializer(RegisterSerializer):
     def save(self, request):
         user = super().save(request)
         additional_user_info = {}
-        # additional_user_info = get_user_data_clearbit(user.email)
+        additional_user_info = get_user_data_clearbit(user.email)
         user.location = additional_user_info.get('location', None)
         user.time_zone = additional_user_info.get('time_zone', None)
         user.city = additional_user_info.get('city', None)
@@ -74,12 +73,9 @@ class RegistrationSerializer(RegisterSerializer):
 
 def email_is_trustworthy(email):
     try:
-        # TODO: uncomment next three lines
         hunter_check_url = recipes_api.settings.HUNTER_URL.format(email, recipes_api.settings.HUNTER_API_KEY)
-        # response = requests.get(hunter_check_url)
-        # json_data = json.loads(response.text)['data']
-        response_text = '{"data":{"status": "webmail","result": "risky","_deprecation_notice": "Using result is deprecated, use status instead","score": 50,"email": "anes1996_h@hotmail.com","regexp": true,"gibberish": true,"disposable": false,"webmail": true,"mx_records": true,"smtp_server": false,"smtp_check": false,"accept_all": false,"block": false,"sources": []},"meta":{"params":{"email": "anes1996_h@hotmail.com"}}}'
-        json_data = json.loads(response_text)['data']
+        response = requests.get(hunter_check_url)
+        json_data = json.loads(response.text)['data']
         score = int(json_data['score'])
 
         # For the simplicity sake and limits by hunter.io only parameter considered is the score

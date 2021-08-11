@@ -25,7 +25,7 @@ recipes_router.register(r'ingredients', viewsets.IngredientsViewSet, basename='i
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
     path('profile/register/', include('dj_rest_auth.registration.urls')),
     path('profile/', include('dj_rest_auth.urls')),
     path(r'most-used-ingredients/', viewsets.MostUsedIngredientsViewSet.as_view(), name='most-used-ingredients'),

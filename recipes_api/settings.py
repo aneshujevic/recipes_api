@@ -151,6 +151,7 @@ JWT_AUTH_REFRESH_COOKIE = 'jwt-auth-refresh'
 
 SITE_ID = 1
 
+# this is a bad practice, in reality we'd save them in other file or in OS env
 HUNTER_URL = 'https://api.hunter.io/v2/email-verifier?email={}&api_key={}'
 HUNTER_API_KEY = '1ec33e1bd98bdb929d2a3d8ca1a57019117903fd'
 CLEARBIT_API_KEY = 'sk_09e350192e4108a6e311dd3674695c80'
